@@ -16,7 +16,9 @@
   "description": "",
   "dependencies": {
     "@prisma/client": "^5.4.1",
+    "convert-svg-to-png": "^0.6.4",
     "node-telegram-bot-api": "^0.63.0",
-    "prisma": "^5.4.1"
+    "prisma": "^5.4.1",
+    "svg-captcha": "^1.4.0"
   }
 }
