@@ -1,0 +1,22 @@
+{
+  "devDependencies": {
+    "@types/node": "^20.8.2",
+    "@types/node-telegram-bot-api": "^0.61.8",
+    "typescript": "^5.2.2"
+  },
+  "name": "bot",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon dist/main.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@prisma/client": "^5.4.1",
+    "node-telegram-bot-api": "^0.63.0",
+    "prisma": "^5.4.1"
+  }
+}
