@@ -28,7 +28,7 @@ const getChatMember = async (bot:TelegramBot, msg:TelegramBot.Message | Telegram
     try {
         let chanells:Chanell[] | [] = await prisma.chanell.findMany()
         
-        if(!chanells.length) return {is_member:false, not_members: []}
+        if(!chanells.length) return {is_member:true, not_members: []}
 
         let is_notMembers:Chanell[] = []
         for (const chanell of chanells) {
@@ -42,7 +42,7 @@ const getChatMember = async (bot:TelegramBot, msg:TelegramBot.Message | Telegram
             return {is_member:false, not_members: is_notMembers}
         }
         
-        return {is_member:true, not_members: is_notMembers}
+        return {is_member:true, not_members: is_notMembers }
     } catch (error) {
         console.log(error);
         

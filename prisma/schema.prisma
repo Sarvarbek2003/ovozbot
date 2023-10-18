@@ -13,6 +13,7 @@ model Users {
   name String? 
   step String @default("home")
   action Json
+  votes Json?
   created_at DateTime @default(now()) @db.Timestamptz(5)
 
   @@map("users")
