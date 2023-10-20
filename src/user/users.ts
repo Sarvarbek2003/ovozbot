@@ -26,7 +26,7 @@ const getUser = async (msg: TelegramBot.Message | TelegramBot.CallbackQuery ):Pr
 
 const getChatMember = async (bot:TelegramBot, msg:TelegramBot.Message | TelegramBot.CallbackQuery): Promise<{is_member:boolean, not_members: Array<Chanell>}> => {
     try {
-        let chanells:Chanell[] | [] = await prisma.chanell.findMany()
+        let chanells:Chanell[] | [] = await prisma.chanell.findMany({where: {is_member: true}})
         
         if(!chanells.length) return {is_member:true, not_members: []}
 
@@ -44,8 +44,6 @@ const getChatMember = async (bot:TelegramBot, msg:TelegramBot.Message | Telegram
         
         return {is_member:true, not_members: is_notMembers }
     } catch (error) {
-        console.log(error);
-        
         return {is_member:true, not_members: []}
     }
 

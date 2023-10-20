@@ -15,7 +15,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@prisma/client": "^5.4.1",
+    "@prisma/client": "^5.4.2",
     "convert-svg-to-png": "^0.6.4",
     "node-telegram-bot-api": "^0.63.0",
     "prisma": "^5.4.1",

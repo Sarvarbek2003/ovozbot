@@ -8,39 +8,56 @@ datasource db {
 }
 
 model Users {
-  id  Int  @id @default(autoincrement())
-  chat_id  BigInt @unique
-  name String? 
-  step String @default("home")
-  action Json
-  votes Json?
+  id         Int      @id @default(autoincrement())
+  chat_id    BigInt   @unique
+  name       String?
+  step       String   @default("home")
+  action     Json
+  votes      Json?
   created_at DateTime @default(now()) @db.Timestamptz(5)
 
   @@map("users")
 }
 
 model Categories {
-    id  Int  @id @default(autoincrement())
-    name String
-    info Json
+  id            Int             @id @default(autoincrement())
+  name          String
+  info          Json
+  messages      Messages[]
+  subcategories Subcategories[]
 
-    schools Subcategories[]
-    @@map("categories")
+  @@map("categories")
 }
 
 model Subcategories {
-    id  Int  @id @default(autoincrement())
-    region_id Int
-    name String
-    info Json
-    vote Int
+  id         Int        @id @default(autoincrement())
+  region_id  Int
+  name       String
+  info       Json
+  vote       Int
+  categories Categories @relation(fields: [region_id], references: [id], onDelete: Cascade)
 
-    regions Categories @relation(fields: [region_id], references: [id], onDelete: Cascade)
+  @@map("subcategories")
 }
 
 model Chanell {
-    id Int @id @default(autoincrement())
-    name String
-    chanell_id String
-    chanell_username String
+  id               Int     @id @default(autoincrement())
+  name             String
+  chanell_id       String
+  chanell_username String
+  is_member        Boolean @default(false)
+  messages         Messages[]
+  @@map("chanell")
+}
+
+model Messages {
+  id          Int        @id @default(autoincrement())
+  category_id Int
+  message_id  Int
+  chanell_id  Int
+
+  chanells    Chanell    @relation(fields: [chanell_id], references: [id], onDelete: Cascade)
+  categories  Categories @relation(fields: [category_id], references: [id], onDelete: Cascade)
+
+  @@map("messages")
 }
