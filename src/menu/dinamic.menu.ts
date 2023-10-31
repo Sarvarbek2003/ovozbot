@@ -27,7 +27,7 @@ const renderChanell = async ():Promise<TelegramBot.InlineKeyboardMarkup> => {
 }
 
 const renderPostChanell = async (category_id: number, bot:TelegramBot):Promise<{caption: string, photo: string, keyboard:TelegramBot.InlineKeyboardMarkup}> => {
-    const category = await prisma.categories.findUnique({where: {id: category_id}, select: {subcategories: true, id: true, info: true,name: true}})
+    const category = await prisma.categories.findUnique({where: {id: category_id}, select: {subcategories: {orderBy: {id: 'asc'}}, id: true, info: true,name: true}})
     let array:TelegramBot.InlineKeyboardMarkup = {
         inline_keyboard: []
     }
@@ -44,7 +44,7 @@ const renderPostChanell = async (category_id: number, bot:TelegramBot):Promise<{
     }
 }
 
-const renderSubcategory = async (id:number):Promise<{caption: string, photo: string, keyboard:TelegramBot.InlineKeyboardMarkup}> => {
+const renderSubcategory = async (id:number):Promise<{caption: string, photo: string, keyboard:TelegramBot.InlineKeyboardMarkup, stopped: boolean}> => {
     const category = await prisma.categories.findUnique({where: {id: id}, select: {info: true, subcategories:true}})
     let keyboard:TelegramBot.InlineKeyboardMarkup = {
         inline_keyboard: []
@@ -52,19 +52,21 @@ const renderSubcategory = async (id:number):Promise<{caption: string, photo: str
 
     let caption = Object(category?.info).caption 
     let photo = Object(category?.info).photo
+    let stopped = Object(category?.info)?.stopped || false
 
     category?.subcategories.forEach(el => {
         keyboard.inline_keyboard.push([{text: el.name, callback_data: 'subcategory:'+el.id}])
     });
     
     return {
+        stopped,
         caption,
         photo,
         keyboard
     }
 }
 
-const renderFindSubcategory = async (id:number):Promise<{caption: string, photo: string, keyboard:TelegramBot.InlineKeyboardMarkup}> => {
+const renderFindSubcategory = async (id:number):Promise<{caption: string, photo: string, keyboard:TelegramBot.InlineKeyboardMarkup, stopped: boolean}> => {
     const subcategory = await prisma.subcategories.findUnique({where: {id: id}, select: {info: true, categories:true}})
     let keyboard:TelegramBot.InlineKeyboardMarkup = {
         inline_keyboard: []
@@ -73,12 +75,14 @@ const renderFindSubcategory = async (id:number):Promise<{caption: string, photo:
     
     let caption = Object(subcategory?.categories?.info).caption 
     let photo = Object(subcategory?.categories?.info).photo
+    let stopped = Object(subcategory?.categories?.info).stopped
 
     subcategories.forEach(el => {
         keyboard.inline_keyboard.push([{text: el.name, callback_data: 'subcategory:'+el.id}])
     });
     
     return {
+        stopped,
         caption,
         photo,
         keyboard

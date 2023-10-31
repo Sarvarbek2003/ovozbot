@@ -8,6 +8,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
+    "build": "tsc -p .",
+    "watch": "npm run build -- -w",
     "dev": "nodemon dist/main.js"
   },
   "keywords": [],
@@ -19,6 +21,8 @@
     "convert-svg-to-png": "^0.6.4",
     "node-telegram-bot-api": "^0.63.0",
     "prisma": "^5.4.1",
-    "svg-captcha": "^1.4.0"
+    "puppeteer": "^21.4.0",
+    "svg-captcha": "^1.4.0",
+    "svg2img": "^1.0.0-beta.2"
   }
 }

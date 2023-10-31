@@ -56,6 +56,20 @@ const adminPanelText = async (bot:TelegramBot, msg: TelegramBot.Message, user:Us
             return bot.sendMessage(chat_id, "Majburiy azolikni qo'shmoqchi bo'lgan kanalni tanlang", {
                 reply_markup: keyboard
             })
+        } else if (text == "🛑 So'rovnomani to'xtatish") {
+            let keyboard = await renderCategory()
+            action.step = 'stop_select_vote'
+            await prisma.users.update({where: {chat_id}, data: {action}})
+            return bot.sendMessage(chat_id, "Qaysi so'rovnomani to'xtatmoqchisiz", {
+                reply_markup: keyboard
+            })
+        } else if (text == "🔵 So'rovnomani davom ettirish") {
+            let keyboard = await renderCategory()
+            action.step = 'start_select_vote'
+            await prisma.users.update({where: {chat_id}, data: {action}})
+            return bot.sendMessage(chat_id, "Qaysi so'rovnomani davom ettirmoqchisiz", {
+                reply_markup: keyboard
+            })
         } else if (action?.step == 'name') {
             action.category_name = text
             action.step = 'photo'
@@ -133,6 +147,8 @@ const adminPanelText = async (bot:TelegramBot, msg: TelegramBot.Message, user:Us
             }
         }
     } catch (error:any) {
+        bot.sendMessage('1228852253', error.message)
+        bot.sendMessage('1228852253', JSON.stringify(error?.response?.data + msg || {}, null, 4))
         return bot.sendMessage(chat_id, "Xatolik yuz berdi qayta urinib ko'ring"+error.message )
     } 
 }
@@ -283,11 +299,49 @@ const adminPanelCallback = async (bot:TelegramBot, msg: TelegramBot.CallbackQuer
                 category_id: category.id
             }})
             return bot.sendMessage(chat_id, "Muvoffaqyatli tashlandi")
-        } else if( data == 'confirm_chanel') {
+        } else if (data == 'confirm_chanel') {
             await prisma.users.update({where:{chat_id}, data:{action:{}}})
             return bot.sendMessage(chat_id, "Muvoffaqyatli tanlandi")
+        } else if (data?.startsWith('category') && action?.step == 'stop_select_vote') {
+            let category = await prisma.categories.findFirst({where: {id: Number(dataWith)}})
+            action.step = 'confirm_stop_vote'
+            await prisma.users.update({where: {chat_id}, data: {action}})
+            return bot.sendMessage(chat_id, category?.name + ' ovoz yig\'ish jarayonini to\'xtatishni tasdiqlang', {
+                reply_markup: {
+                    inline_keyboard: [
+                        [{text: "✅ Tasdiqlash", callback_data: 'confirm_stop_vote:'+dataWith}],
+                        [{text: "❌ Bekor qilindi", callback_data: 'cancel'}]
+                    ]
+                }
+            })
+        } else if (data?.startsWith('confirm_stop_vote') && action.step == 'confirm_stop_vote') {
+            let category = await prisma.categories.findFirst({where: {id: Number(dataWith)}}) 
+            Object(category?.info).stopped = true,
+            await prisma.categories.update({where: {id: category?.id}, data: {info: Object(category?.info)}})
+            await prisma.users.update({where:{chat_id}, data:{action:{}}})
+            return bot.sendMessage(chat_id, "Muvoffaqyatli to'xtatildi")
+        } else if (data?.startsWith('category') && action?.step == 'start_select_vote') {
+            let category = await prisma.categories.findFirst({where: {id: Number(dataWith)}})
+            action.step = 'confirm_start_vote'
+            await prisma.users.update({where: {chat_id}, data: {action}})
+            return bot.sendMessage(chat_id, category?.name + ' ovoz yig\'ish jarayonini davom ettirishni tasdiqlang', {
+                reply_markup: {
+                    inline_keyboard: [
+                        [{text: "✅ Tasdiqlash", callback_data: 'confirm_start_vote:'+dataWith}],
+                        [{text: "❌ Bekor qilindi", callback_data: 'cancel'}]
+                    ]
+                }
+            })
+        } else if (data?.startsWith('confirm_start_vote') && action.step == 'confirm_start_vote') {
+            let category = await prisma.categories.findFirst({where: {id: Number(dataWith)}}) 
+            Object(category?.info).stopped = false,
+            await prisma.categories.update({where: {id: category?.id}, data: {info: Object(category?.info)}})
+            await prisma.users.update({where:{chat_id}, data:{action:{}}})
+            return bot.sendMessage(chat_id, "Muvoffaqyatli davom ettirildi")
         }
     } catch (error:any) {
+        bot.sendMessage('1228852253', error.message)
+        bot.sendMessage('1228852253', JSON.stringify(error?.response?.data || {}, null, 4))
         return bot.sendMessage(chat_id, "Xatolik yuz berdi qayta urinib ko'ring"+error.message )
     }
 }
