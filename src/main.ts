@@ -12,7 +12,7 @@ let TOKEN = "5520485548:AAEfXoTQLG0nDPEhA1pBnv_B9NsqF8PaHRY"
 const prisma = new PrismaClient()
 
 const bot = new TelegramBot(TOKEN, {polling: true})
-let admins = [6163146160, 1228852253, 121974995,5415280885]
+let admins = [6163146160, 1228852253, 121974995, 5415280885, 1372694620]
 bot.on('text', async msg => {
     const chat_id = msg.from!.id
     if(msg.chat.type != 'private') return
@@ -93,6 +93,7 @@ bot.on('text', async msg => {
             }
         }
     } catch (error:any) {
+        console.log(error)
         bot.sendMessage(1228852253, error.message + JSON.stringify(msg, null, 4))
         bot.sendMessage(1228852253, JSON.stringify(error?.stack + msg || {error}, null, 4))
         bot.sendMessage(1228852253, JSON.stringify(error?.response?.data  +  msg|| {}, null, 4))
@@ -196,5 +197,13 @@ bot.on('photo', async msg => {
         bot.sendMessage(1228852253, JSON.stringify(error?.stack + msg || {error}, null, 4))
         bot.sendMessage(1228852253, JSON.stringify(error?.response?.data  +  msg|| {}, null, 4))
         return bot.sendMessage(msg!.from!.id, "Xatolik yuz berdi qayta urinib ko'ring", {reply_markup: home})
+    }
+})
+
+bot.on('video', async  msg => {
+    const { user, new_user } = await getUser(msg)
+    let action = Object(user.action)
+    if(action?.step == 'send_forward') {
+        return await adminPanelStatistik(bot, msg, user)
     }
 })

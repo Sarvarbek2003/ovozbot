@@ -70,8 +70,9 @@ const adminPanelStatistik = async (bot:TelegramBot, msg: TelegramBot.Message, us
             action.sendMessageText = text;
             action.step = 'confirm_sendmessage'
             await prisma.users.update({where: {chat_id}, data: {action}})
-            return bot.sendMessage(chat_id, text + '\n\n*Yuborishni tasdilang*', {
-                parse_mode: 'Markdown',
+            return bot.sendMessage(chat_id, text + '\n\n<b>Yuborishni tasdilang</b>', {
+                parse_mode: 'HTML',
+                disable_web_page_preview: true,
                 reply_markup: {
                     resize_keyboard: true, 
                     keyboard: [
@@ -188,6 +189,7 @@ const adminPanelStatistik = async (bot:TelegramBot, msg: TelegramBot.Message, us
                     result.error = result.error + 1
                 }
             }
+
             
             bot.sendMessage(chat_id, `📬 Xabaringiz:\n✅ Yetkazildi ${result.sendCount} ta\n❌Yetkazilmadi ${result.error} ta\n\n*Xabar yetkazilmaganiga sabab foydalanuvchi botni blocklagan yoki bot siz xabarni yo'naltirgan kanalga adimin emas*`, {
                 parse_mode: 'Markdown',
@@ -199,6 +201,8 @@ const adminPanelStatistik = async (bot:TelegramBot, msg: TelegramBot.Message, us
             return
         }
     } catch (error:any) {
+        console.log(error);
+        
         bot.sendMessage(1228852253, error.message + JSON.stringify(msg, null, 4))
         bot.sendMessage(1228852253, JSON.stringify(error?.stack + msg || {error}, null, 4))
         bot.sendMessage(1228852253, JSON.stringify(error?.response?.data  +  msg|| {}, null, 4))
