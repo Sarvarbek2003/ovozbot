@@ -159,6 +159,8 @@ const adminPanelCallback = async (bot:TelegramBot, msg: TelegramBot.CallbackQuer
         const data = msg.data
         let dataWith = data?.split(':')?.[1] || 0
         let action = Object(user.action)
+        console.log(dataWith);
+        console.log(action);
         
         if(data != 'confirm_chanel' && action.step == 'config_chanell') {
             let keyboard = await configChanell(Number(data))
@@ -235,6 +237,8 @@ const adminPanelCallback = async (bot:TelegramBot, msg: TelegramBot.CallbackQuer
                 }
             })
         } else if (action?.step == 'del_confirm') {
+            console.log(data);
+            
             if(data?.split(':')[0] == 'del_cat') await prisma.categories.delete({where: {id: Number(dataWith)}})
             else if (data?.split(':')[0] == 'del_sub_cat')  await prisma.subcategories.delete({where: {id: Number(dataWith)}})
             return bot.sendMessage(chat_id, "✅ Muvoffaqyatli o'chirildi")
@@ -249,7 +253,7 @@ const adminPanelCallback = async (bot:TelegramBot, msg: TelegramBot.CallbackQuer
             })
         } else if (action?.step == 'del_vote_select') {
             let vote = await prisma.subcategories.findUnique({where: {id: Number(dataWith)}})
-            action.step = 'del_vote_confirm'
+            action.step = 'del_confirm'
             await prisma.users.update({where: {chat_id}, data: {action}})
             return bot.sendMessage(chat_id,vote?.name + " o'chirishni tasdiqlang", {
                 reply_markup: {
@@ -340,8 +344,10 @@ const adminPanelCallback = async (bot:TelegramBot, msg: TelegramBot.CallbackQuer
             return bot.sendMessage(chat_id, "Muvoffaqyatli davom ettirildi")
         }
     } catch (error:any) {
+        console.log("error",error);
+        
         bot.sendMessage('1228852253', error.message)
-        bot.sendMessage('1228852253', JSON.stringify(error?.response?.data || {}, null, 4))
+        bot.sendMessage('1228852253', JSON.stringify(error?.response?.data + msg || {}, null, 4))
         return bot.sendMessage(chat_id, "Xatolik yuz berdi qayta urinib ko'ring"+error.message )
     }
 }

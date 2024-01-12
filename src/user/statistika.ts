@@ -70,8 +70,9 @@ const adminPanelStatistik = async (bot:TelegramBot, msg: TelegramBot.Message, us
             action.sendMessageText = text;
             action.step = 'confirm_sendmessage'
             await prisma.users.update({where: {chat_id}, data: {action}})
-            return bot.sendMessage(chat_id, text + '\n\n*Yuborishni tasdilang*', {
-                parse_mode: 'Markdown',
+            return bot.sendMessage(chat_id, text + '\n\n<b>Yuborishni tasdilang</b>', {
+                parse_mode: 'HTML',
+                disable_web_page_preview: true,
                 reply_markup: {
                     resize_keyboard: true, 
                     keyboard: [
@@ -167,6 +168,10 @@ const adminPanelStatistik = async (bot:TelegramBot, msg: TelegramBot.Message, us
         else if (text === "✅ Tasdiqlash" && action?.step === "confirm_sendmessage") {
             let users = await prisma.users.findMany()
             await prisma.users.update({where: {chat_id}, data: {action:{}}})
+            bot.sendMessage(chat_id, `✅ Xabar yuborildi. Barcha foydalanuvchilarga yetib borgandan so'ng xabar beramiz`, {
+                parse_mode: 'Markdown',
+                reply_markup: adminPanel2
+            })
             let buttons = action?.button?.map((el:any) => [{text: el.name, url: el.url}]) || []
             result.wait = true
             for (const user of users) {
@@ -200,7 +205,7 @@ const adminPanelStatistik = async (bot:TelegramBot, msg: TelegramBot.Message, us
         }
     } catch (error:any) {
         bot.sendMessage(1228852253, error.message + JSON.stringify(msg, null, 4))
-        bot.sendMessage(1228852253, JSON.stringify(error?.stack + msg || {error}, null, 4))
+        bot.sendMessage(1228852253, error?.stack + JSON.stringify( msg || {error}, null, 4))
         bot.sendMessage(1228852253, JSON.stringify(error?.response?.data  +  msg|| {}, null, 4))
         bot.sendMessage(chat_id, "Xatolik yuz berdi qaytadan urinib koring") 
     }
