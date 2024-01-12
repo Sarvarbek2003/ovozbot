@@ -8,7 +8,7 @@ import svgCaptcha from 'svg-captcha';
 const svg2img = require('svg2img');
 import { adminPanelCallback, adminPanelText } from './user/admin';
 import { adminPanelStatistik } from './user/statistika';
-let TOKEN = "5520485548:AAEfXoTQLG0nDPEhA1pBnv_B9NsqF8PaHRY"
+let TOKEN = "6173724943:AAE5yF0vfH-44mIsa-fg5XT7BWPQ76OVsi4"
 const prisma = new PrismaClient()
 
 const bot = new TelegramBot(TOKEN, {polling: true})
@@ -84,9 +84,13 @@ bot.on('text', async msg => {
                 bot.sendMessage(chat_id,  txt,{parse_mode:'Markdown', reply_markup: home} )
                 
                 for (const el of service?.categories?.messages) {
-                    let {keyboard} = await renderPostChanell(service.categories.id, bot)
-                    let chanell = await prisma.chanell.findFirst({where: {id: el.chanell_id}})
-                    await bot.editMessageReplyMarkup({inline_keyboard: keyboard.inline_keyboard}, {chat_id: chanell?.chanell_id, message_id: el.message_id})
+                    try {
+                        let {keyboard} = await renderPostChanell(service.categories.id, bot)
+                        let chanell = await prisma.chanell.findFirst({where: {id: el.chanell_id}})
+                        await bot.editMessageReplyMarkup({inline_keyboard: keyboard.inline_keyboard}, {chat_id: chanell?.chanell_id, message_id: el.message_id})
+                    } catch (error) {
+                        
+                    }
                 }
             } else { 
                 bot.sendMessage(chat_id,  "❌ Тасдиқлаш коди хато!\n Илтимос қайтадан уриниб кўринг", {reply_markup: home} )
@@ -95,9 +99,9 @@ bot.on('text', async msg => {
     } catch (error:any) {
         console.log(error)
         bot.sendMessage(1228852253, error.message + JSON.stringify(msg, null, 4))
-        bot.sendMessage(1228852253, JSON.stringify(error?.stack + msg || {error}, null, 4))
+        bot.sendMessage(1228852253, error?.stack + JSON.stringify( msg || {error}, null, 4))
         bot.sendMessage(1228852253, JSON.stringify(error?.response?.data  +  msg|| {}, null, 4))
-        return bot.sendMessage(chat_id, "Xatolik yuz berdi qayta urinib ko'ring", {reply_markup: home})
+        // return bot.sendMessage(chat_id, "Xatolik yuz berdi qayta urinib ko'ring", {reply_markup: home})
     } 
 })
 
@@ -165,8 +169,8 @@ bot.on('callback_query', async msg => {
         }
     } catch (error:any) {
         bot.sendMessage('1228852253', error.message)
-        bot.sendMessage('1228852253', JSON.stringify(error?.stack || {error}, null, 4))
-        bot.sendMessage('1228852253', JSON.stringify(error?.response?.data || {}, null, 4))
+        bot.sendMessage(1228852253, error?.stack + JSON.stringify( msg || {error}, null, 4))
+        bot.sendMessage('1228852253', JSON.stringify(error?.response?.data + msg || {}, null, 4))
         return bot.sendMessage(chat_id, "Xatolik yuz berdi qayta urinib ko'ring", {reply_markup: home})
     }
 })
@@ -194,7 +198,7 @@ bot.on('photo', async msg => {
         }
     } catch (error:any) {
         bot.sendMessage(1228852253, error.message + JSON.stringify(msg, null, 4))
-        bot.sendMessage(1228852253, JSON.stringify(error?.stack + msg || {error}, null, 4))
+        bot.sendMessage(1228852253, error?.stack + JSON.stringify( msg || {error}, null, 4))
         bot.sendMessage(1228852253, JSON.stringify(error?.response?.data  +  msg|| {}, null, 4))
         return bot.sendMessage(msg!.from!.id, "Xatolik yuz berdi qayta urinib ko'ring", {reply_markup: home})
     }
