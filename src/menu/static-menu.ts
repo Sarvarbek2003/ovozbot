@@ -15,7 +15,7 @@ const adminPanel:TelegramBot.ReplyKeyboardMarkup = {
         [{text: "🔵 So'rovnomani davom ettirish"}],
         [{text: "➕ Kanal qo'shish"}],
         [{text: "⚙️ Majburiy azolikni boshqarish"}]
-    ] 
+    ]  
 }
 
 const adminPanel2:TelegramBot.ReplyKeyboardMarkup = {
@@ -23,6 +23,7 @@ const adminPanel2:TelegramBot.ReplyKeyboardMarkup = {
     keyboard: [
         [{text: "📊 Statistika"}, {text: "📬 Xabar yuborish"}],
         [{text: "🌄 Rasmli xabar yuborish"}],
+        [{text: "🧾 Ovozlar"}],
         [{text: "↩️ Forward xabar yuborish"}]
     ]
 }

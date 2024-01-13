@@ -1,5 +1,5 @@
 import TelegramBot from "node-telegram-bot-api";
-import { configChanell, renderCategory, renderChanell, renderPostChanell, renderSubcategory } from "../menu/dinamic.menu";
+import { configChanell, getVotes, renderCategory, renderChanell, renderPostChanell, renderSubcategory } from "../menu/dinamic.menu";
 import { PrismaClient, Users } from "@prisma/client";
 import { adminPanel2 } from "../menu/static-menu";
 const prisma = new PrismaClient()
@@ -44,6 +44,15 @@ const adminPanelStatistik = async (bot:TelegramBot, msg: TelegramBot.Message, us
             action = { step: 'send_forward' }
             await prisma.users.update({where: {chat_id}, data: {action}})
             return bot.sendMessage(chat_id, "Forward xabar yuboring")
+        } 
+        else if (text == "🧾 Ovozlar") {
+            let keyboard = await renderCategory()
+            if(!keyboard.inline_keyboard.length) return bot.sendMessage(chat_id, "Avval kategoriya qo'shishingiz kerak") 
+            action.step = "select_cat_stat"
+            await prisma.users.update({where: {chat_id}, data: {action}})
+            return bot.sendMessage(chat_id, "Tanlang 👇", {
+                reply_markup: keyboard
+            })
         } 
         else if(action?.step == 'send_forward') {
             action.forward_chat_id = msg.forward_from_chat?.id || msg.from?.id
@@ -203,6 +212,19 @@ const adminPanelStatistik = async (bot:TelegramBot, msg: TelegramBot.Message, us
             result.sendCount = 0
             result.error = 0
             return
+        } 
+        else if (action.step == 'by_id') {
+            if(Number.isInteger(text)) return bot.sendMessage(chat_id, "‼️ Id faqat raqamlardan iborat bo`ladi ") 
+            let user = await prisma.users.findUnique({where: {chat_id: Number(text)}})
+            if(!user) return bot.sendMessage(chat_id, '❌ Ushbu id raqam bilan foydalanuvchi mavjud emas')
+            let votes = await prisma.subcategories.findMany({select: {id: true, name: true, categories: true}})
+            let votes_id = votes.map(el => el.id)
+            let userVotes:Array<{vote_id: number}> = Object(user.votes)
+            
+            let isExistsVotes = userVotes?.filter(el=> votes_id.includes(el.vote_id))
+            if(!isExistsVotes.length) return bot.sendMessage(chat_id, 'Foydalanuvchi xechqanday ovoz bermagan') 
+            let userFindVote = votes?.find(el=> userVotes.map(e => e.vote_id).includes(el.id))
+            return bot.sendMessage(chat_id, `✅ Ushbu foydalanuvchi: <b>${userFindVote?.categories.name} - ${userFindVote?.name}</b> ga ovoz bergan`, { parse_mode: 'HTML' })
         }
     } catch (error:any) {
         console.log(error);

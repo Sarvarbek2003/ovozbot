@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client"
+import { PrismaClient, Users } from "@prisma/client"
 import TelegramBot from "node-telegram-bot-api"
 const prisma = new PrismaClient()
 
@@ -24,6 +24,50 @@ const renderChanell = async ():Promise<TelegramBot.InlineKeyboardMarkup> => {
     });
     
     return array
+}
+
+const getVotes = async (id:number):Promise<TelegramBot.InlineKeyboardMarkup> => {
+    const category = await prisma.categories.findUnique({where: {id: id}, select: {info: true, subcategories:true}})
+    let keyboard:TelegramBot.InlineKeyboardMarkup = {
+        inline_keyboard: []
+    }
+
+    category?.subcategories.forEach(el => {
+        keyboard.inline_keyboard.push([{text: el.name, callback_data: 'subcategory:'+el.id}])
+    });
+    keyboard.inline_keyboard.push([{text: '🔎 Id bilan qidirish', callback_data: 'by_id'}])
+
+    return keyboard
+}
+
+const getVotesByUsers = async (id:number, page:number):Promise<{button:TelegramBot.InlineKeyboardMarkup, text:string, disable: boolean}> => {
+
+    const users = await prisma.$queryRaw<Users[]>`
+        SELECT id, name, chat_id
+        FROM users
+        WHERE EXISTS (
+            SELECT 1
+                FROM jsonb_array_elements(votes) AS v
+            WHERE (v->>'vote_id')::int = ${id}
+    )`  
+    
+    let size = 10
+    let paginationUsers = users.slice(page * size - size, size * page)
+    let text = ``
+    
+    let button: TelegramBot.InlineKeyboardMarkup = {
+        inline_keyboard: [
+            [{text: '⬅️', callback_data: `${id}:${page>1?page-1:1}`}, {text: `${page}/${Math.ceil(users.length/size)}`, callback_data: 'datta'}, {text: '➡️', callback_data: `${id}:${users.length/size > page ? page+1 : page}`}]
+        ]
+    } 
+    
+    for (const user of paginationUsers) {
+        let name = user?.name?.replaceAll(/<|>/g, '')
+        text += `ID: <a href="tg://user?id=${user.chat_id}">${user.chat_id}</a>\nName: ${name}\n🟰🟰🟰🟰🟰🟰🟰🟰\n`
+    }
+
+    return {button, text, disable: users.length ? true :false}
+    
 }
 
 const renderPostChanell = async (category_id: number, bot:TelegramBot):Promise<{caption: string, photo: string, keyboard:TelegramBot.InlineKeyboardMarkup}> => {
@@ -106,4 +150,4 @@ const configChanell = async (id?: number):Promise<TelegramBot.InlineKeyboardMark
 }
 
 
-export { renderCategory, renderSubcategory, renderChanell, renderPostChanell, renderFindSubcategory, configChanell }
+export { renderCategory, renderSubcategory, renderChanell, renderPostChanell, renderFindSubcategory, configChanell, getVotes, getVotesByUsers }

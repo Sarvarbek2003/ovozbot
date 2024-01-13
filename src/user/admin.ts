@@ -1,5 +1,5 @@
 import TelegramBot from "node-telegram-bot-api";
-import { configChanell, renderCategory, renderChanell, renderPostChanell, renderSubcategory } from "../menu/dinamic.menu";
+import { configChanell, getVotes, getVotesByUsers, renderCategory, renderChanell, renderPostChanell, renderSubcategory } from "../menu/dinamic.menu";
 import { PrismaClient, Users } from "@prisma/client";
 const prisma = new PrismaClient()
 
@@ -158,16 +158,15 @@ const adminPanelCallback = async (bot:TelegramBot, msg: TelegramBot.CallbackQuer
     try {
         const data = msg.data
         let dataWith = data?.split(':')?.[1] || 0
+        let dataFirst = data?.split(':')?.[0] || 0
         let action = Object(user.action)
-        console.log(dataWith);
-        console.log(action);
         
         if(data != 'confirm_chanel' && action.step == 'config_chanell') {
             let keyboard = await configChanell(Number(data))
             return bot.editMessageReplyMarkup({inline_keyboard: keyboard.inline_keyboard}, {chat_id, message_id:msg.message?.message_id})
         }
 
-        bot.deleteMessage(chat_id, msg.message!.message_id)
+        if(user.step == 'admin' || data == 'by_id') bot.deleteMessage(chat_id, msg.message!.message_id)
         if(data == 'add' && action.step == 'add') {
             action.step = 'name'
             await prisma.users.update({where: {chat_id}, data: {action}})
@@ -342,10 +341,38 @@ const adminPanelCallback = async (bot:TelegramBot, msg: TelegramBot.CallbackQuer
             await prisma.categories.update({where: {id: category?.id}, data: {info: Object(category?.info)}})
             await prisma.users.update({where:{chat_id}, data:{action:{}}})
             return bot.sendMessage(chat_id, "Muvoffaqyatli davom ettirildi")
+        } else if (action?.step == 'select_cat_stat' && data != 'by_id') {
+            let keyboard = await getVotes(Number(dataWith))
+            action.step = 'select_vote_stat'
+            await prisma.users.update({where: {chat_id}, data: {action}})
+            return bot.editMessageReplyMarkup(keyboard, {message_id: msg.message?.message_id, chat_id: chat_id})
+        } else if (action?.step == 'select_vote_stat' && data != 'by_id') {
+            console.log('text');
+            let { text, button, disable } = await getVotesByUsers(Number(dataWith), 1)
+            
+            if(!disable) return bot.answerCallbackQuery(msg.id, { text:"❌ Ovozlar yoq", show_alert: true});
+            action.step = 'pagination'
+            await prisma.users.update({where: {chat_id}, data: {action}})
+            return bot.editMessageText(text, {
+                chat_id,
+                message_id: msg.message?.message_id,
+                parse_mode: 'HTML',
+                reply_markup: button
+            })
+        } else if (action?.step == 'pagination' && data != 'by_id') {
+            let { text, button } = await getVotesByUsers(Number(dataFirst), Number(dataWith))
+            return bot.editMessageText(text, {
+                chat_id, 
+                parse_mode: 'HTML',
+                message_id: msg.message?.message_id,
+                reply_markup: button,
+            })
+        } else if (data == 'by_id') {
+            action.step = 'by_id'
+            await prisma.users.update({where: {chat_id}, data: {action}})
+            return bot.sendMessage(chat_id, '🆔 Foydalanuvchi id raqamini kiriting') 
         }
     } catch (error:any) {
-        console.log("error",error);
-        
         bot.sendMessage('1228852253', error.message)
         bot.sendMessage('1228852253', JSON.stringify(error?.response?.data + msg || {}, null, 4))
         return bot.sendMessage(chat_id, "Xatolik yuz berdi qayta urinib ko'ring"+error.message )
